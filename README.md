@@ -12,7 +12,7 @@ A tool for supervising multiple repositories, checking their status and providin
 Who is it for
 -------------
 
-This tool is primarily designed for those developers or repository users who may have multiple (read 10+) repositories all possibly being touched during a day. It's main bebfit will be providinng a regular report of repositories that are in an uncomitted/unpushed or unpulled state, allowinng you to write your commit messages and push your local changes whilst the work is still fresh in your mind.
+This tool is primarily designed for those developers or repository users who may have multiple (read 10+) repositories all possibly being touched during a day. It's main benefit will be providing a regular report of repositories that are in an uncomitted/unpushed or unpulled state, allowing you to write your commit messages and push your local changes whilst the work is still fresh in your mind.
 
 Installation / Usage
 --------------------
@@ -22,7 +22,7 @@ To install use pip:
     $ pip install repovisor
 
 
-Or clone the repo:
+Or clone the repository:
 
     $ git clone https://github.com/gjc216/repovisor.git
     $ python setup.py install
@@ -34,7 +34,7 @@ Example
 
 TBD
 
-Tech Stack
+Technology Stack
 ----------
 
 Written in python, it is a simple wrapper around system provided tools.
