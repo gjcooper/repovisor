@@ -37,7 +37,7 @@ TBD
 Technology Stack
 ----------
 
-Written in python, it is a simple wrapper around system provided tools.
+Written in python, it is based off the GitPython package , providing user facing UI features
 
 Currently the VCS it supports is:
 * Git

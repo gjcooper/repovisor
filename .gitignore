@@ -38,3 +38,9 @@ docs/_build
 
 # Cookiecutter
 output/
+
+# Vim swaps
+*.swp
+
+# Python virtualenv
+venv/
