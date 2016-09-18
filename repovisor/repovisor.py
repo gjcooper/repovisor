@@ -29,14 +29,14 @@ def repocheck(*repos):
 
 def git_for_each_ref(repo, ref):
     """replicate my for-each-ref pattern"""
-    upstream = ref.tracking_branch().name
+    upstream = ref.tracking_branch()
     if not upstream:
-        return dict(upstream=None)
+        return dict(name=ref.name, upstream=None)
     ahead = sum(1 for c in
                 repo.iter_commits(rev=upstream.name + '..' + ref.name))
     behind = sum(1 for c in
                  repo.iter_commits(rev=ref.name + '..' + upstream.name))
-    return dict(upstream=upstream, ahead=ahead, behind=behind)
+    return dict(name=ref.name, upstream=upstream, ahead=ahead, behind=behind)
 
 
 def checkGit(repo):
