@@ -1,45 +1,72 @@
 import unittest
-import os
-from shutil import rmtree
-from tempfile import mkstemp, mkdtemp
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from repovisor import repovisor as rv
 from git import Repo
 
 
 def mktmp_git_dir():
-    gitdir = mkdtemp()
-    repo = Repo.init(gitdir)
-    testfile, fpath = mkstemp(dir=gitdir, text=True)
-    os.write(testfile, b'Test')
-    os.close(testfile)
-    repo.index.add([fpath])
-    repo.index.commit("initial commit")
-    return gitdir, repo, fpath
+    gitdir = TemporaryDirectory()
+    repo = Repo.init(gitdir.name)
+    initfile = NamedTemporaryFile(dir=gitdir.name, delete=False)
+    initfile.write(b'Test')
+    initfile.close()
+    repo.index.add([initfile.name])
+    repo.index.commit('initial commit')
+    return gitdir, repo, initfile
 
 
-def rm_temp_gitdir(folder, repo, *files):
-    rmtree(folder)
-    del repo
-    del folder
-    for f in files:
-        del f
+def mkbare_git_dir():
+    gitdir = TemporaryDirectory()
+    repo = Repo.init(gitdir.name, bare=True)
+    return gitdir, repo
 
 
 class RepovisorTestCases(unittest.TestCase):
     def setUp(self):
         self.gitdir, self.repo, self.trackedfile = mktmp_git_dir()
+        self.repodict = dict(folder=self.gitdir.name,
+                             vcs='git',
+                             pntr=self.repo)
+        self.baredir, self.bare = mkbare_git_dir()
 
     def tearDown(self):
-        rm_temp_gitdir(self.gitdir, self.repo, self.trackedfile)
+        pass
 
     def test_reposearch(self):
-        repos = list(rv.reposearch(self.gitdir))
-        self.assertEqual(self.gitdir, repos[0]['folder'])
+        repos = list(rv.reposearch(self.gitdir.name))
+        self.assertEqual(self.gitdir.name, repos[0]['folder'])
         self.assertEqual(self.repo, repos[0]['pntr'])
         self.assertEqual('git', repos[0]['vcs'])
 
     def test_reposearch_empty(self):
-        tmpdir = mkdtemp()
-        repos = list(rv.reposearch(tmpdir))
+        tmpdir = TemporaryDirectory()
+        repos = list(rv.reposearch(tmpdir.name))
         self.assertFalse(repos)
-        rmtree(tmpdir)
+
+    def test_repocheck(self):
+        # Test that an unknown vcs raises a warning
+        unknowndict = {'vcs': 'navcs', 'pntr': None, 'folder': 'Fake'}
+        with self.assertWarnsRegex(UserWarning, 'Unknown vcs type'):
+            rv.repocheck(unknowndict)
+        # Test that repo state is passed back
+        rv.repocheck(self.repodict)
+        rv.repocheck(self.repodict)
+        self.assertEqual(self.repodict['state'], self.repodict['laststate'])
+
+    def test_git_for_each_ref(self):
+        noup_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
+        self.assertEqual(noup_git, {'name': 'master', 'upstream': None})
+        origin = self.repo.create_remote('origin', self.baredir)
+        origin.push()
+        self.repo.refs.master.set_tracking_branch(origin.refs.master)
+        up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
+        self.assertEqual(up_git['ahead'], 0)
+        self.assertEqual(up_git['behind'], 0)
+        tempfile = NamedTemporaryFile(dir=self.gitdir.name, delete=False)
+        self.repo.index.add([tempfile.name])
+        self.repo.index.commit('Commit2')
+        up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
+        self.assertEqual(up_git['ahead'], 1)
+        self.repo.refs.master.set_commit('HEAD~1')
+        up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
+        self.assertEqual(up_git['behind'], 1)

@@ -4,7 +4,6 @@ from colorama import Fore, Style, init
 import os
 import warnings
 
-vcs_statechecker = {'git': None}
 init()
 
 
@@ -23,10 +22,11 @@ def repocheck(*repos):
     for repo in repos:
         if 'state' in repo:
             repo['laststate'] = repo['state']
-        if repo['vcs'] not in vcs_statechecker:
+        try:
+            repo['state'] = vcs_statechecker(repo['vcs'])(repo['pntr'])
+        except KeyError:
             warnings.warn(
                 'Unknown vcs type: {} not checked'.format(repo['folder']))
-        repo['state'] = vcs_statechecker[repo['vcs']](repo['pntr'])
 
 
 def git_for_each_ref(repo, ref):
@@ -49,9 +49,10 @@ def checkGit(repo):
     return dict(dirty=dirty, untracked=untracked, refcheck=reflist)
 
 
-def addHandlers():
-    """add statechker handlers to dict"""
-    vcs_statechecker['git'] = checkGit
+def vcs_statechecker(vcstype):
+    """Return correct statechecker for vcs type"""
+    checkers = {'git': checkGit}
+    return checkers[vcstype]
 
 
 def ahead_behind(ref):
