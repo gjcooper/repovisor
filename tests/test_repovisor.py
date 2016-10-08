@@ -53,20 +53,29 @@ class RepovisorTestCases(unittest.TestCase):
         rv.repocheck(self.repodict)
         self.assertEqual(self.repodict['state'], self.repodict['laststate'])
 
-    def test_git_for_each_ref(self):
+    def test_git_for_each_ref_no_upstream(self):
         noup_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
         self.assertEqual(noup_git, {'name': 'master', 'upstream': None})
-        origin = self.repo.create_remote('origin', self.baredir)
-        origin.push()
+
+    def test_git_for_each_ref_with_upstream(self):
+        # Add tracking branch and remote
+        origin = self.repo.create_remote('origin', self.baredir.name)
+        origin.push(refspec='master')
         self.repo.refs.master.set_tracking_branch(origin.refs.master)
+        # Grab for_each_ref on base versions
         up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
         self.assertEqual(up_git['ahead'], 0)
         self.assertEqual(up_git['behind'], 0)
+        # Add new temp file to local repo
         tempfile = NamedTemporaryFile(dir=self.gitdir.name, delete=False)
         self.repo.index.add([tempfile.name])
         self.repo.index.commit('Commit2')
+        # Check we are now ahead by one commit
         up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
         self.assertEqual(up_git['ahead'], 1)
+        # Push the new file then revert the local repo
+        origin.push()
         self.repo.refs.master.set_commit('HEAD~1')
+        # Now check it is behind
         up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
         self.assertEqual(up_git['behind'], 1)
