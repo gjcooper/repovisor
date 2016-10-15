@@ -74,7 +74,7 @@ def print_state(*repos):
         print('Location: ', repo['folder'])
         state = repo['state']
         print('Modified: ', Fore.RED, state['dirty'], Style.RESET_ALL)
-        print('Untracked: ', Fore.YELLOW, '\n'.join(state['untracked']),
+        print('Untracked: \n', Fore.YELLOW, '\n'.join(state['untracked']),
               Style.RESET_ALL)
         print('Refs:')
         for ref in state['refcheck']:
