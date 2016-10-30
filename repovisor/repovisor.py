@@ -1,3 +1,4 @@
+from .repostate import GitRepoState
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from colorama import Fore, Style, init
@@ -11,7 +12,7 @@ def reposearch(*folders):
     for folder in folders:
         for dir, subdirs, files in os.walk(folder):
             try:
-                yield dict(vcs='git', pntr=Repo(dir), folder=dir)
+                yield GitRepoState(dir)
                 subdirs[:] = []
                 continue
             except InvalidGitRepositoryError:
@@ -27,32 +28,6 @@ def repocheck(*repos):
         except KeyError:
             warnings.warn(
                 'Unknown vcs type: {} not checked'.format(repo['folder']))
-
-
-def git_for_each_ref(repo, ref):
-    """replicate my for-each-ref pattern"""
-    upstream = ref.tracking_branch()
-    if not upstream:
-        return dict(name=ref.name, upstream=None)
-    ahead = sum(1 for c in
-                repo.iter_commits(rev=upstream.name + '..' + ref.name))
-    behind = sum(1 for c in
-                 repo.iter_commits(rev=ref.name + '..' + upstream.name))
-    return dict(name=ref.name, upstream=upstream, ahead=ahead, behind=behind)
-
-
-def checkGit(repo):
-    """Check a git repo state and report it"""
-    dirty = repo.is_dirty()
-    untracked = repo.untracked_files
-    reflist = [git_for_each_ref(repo, ref) for ref in repo.heads]
-    return dict(dirty=dirty, untracked=untracked, refcheck=reflist)
-
-
-def vcs_statechecker(vcstype):
-    """Return correct statechecker for vcs type"""
-    checkers = {'git': checkGit}
-    return checkers[vcstype]
 
 
 def ahead_behind(ref):
@@ -71,6 +46,7 @@ def ahead_behind(ref):
 def print_state(*repos):
     """Print all repo current state to terminal"""
     for repo in repos:
+        print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
         print('Location: ', repo['folder'])
         state = repo['state']
         print('Modified: ', Fore.RED, state['dirty'], Style.RESET_ALL)
@@ -83,3 +59,4 @@ def print_state(*repos):
                 ab_notifier = ahead_behind(ref)
             print('\tName: ', ref['name'], ' Upstream: ', ref['upstream'],
                   'Status: ', ab_notifier)
+        print('________________________________________')

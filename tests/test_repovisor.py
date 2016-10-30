@@ -79,3 +79,6 @@ class RepovisorTestCases(unittest.TestCase):
         # Now check it is behind
         up_git = rv.git_for_each_ref(self.repo, self.repo.heads.master)
         self.assertEqual(up_git['behind'], 1)
+
+    def test_print_state(self):
+        
