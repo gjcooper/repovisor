@@ -19,17 +19,6 @@ def reposearch(*folders):
                 pass
 
 
-def repocheck(*repos):
-    for repo in repos:
-        if 'state' in repo:
-            repo['laststate'] = repo['state']
-        try:
-            repo['state'] = vcs_statechecker(repo['vcs'])(repo['pntr'])
-        except KeyError:
-            warnings.warn(
-                'Unknown vcs type: {} not checked'.format(repo['folder']))
-
-
 def ahead_behind(ref):
     if ref['ahead']:
         glyph = Fore.RED + '+' + str(ref['ahead']) + Style.RESET_ALL
@@ -42,13 +31,21 @@ def ahead_behind(ref):
         glyph += '-'
     return glyph
 
+def state_representation(repo):
+    """Print the state for a repository"""
+    loc = 'Location: ' + repo.path
+    state = repo.state
+    mod = 'Modified: '
+    if state['dirty']:
+        
+    
 
-def print_state(*repos):
+def print_all(*repos):
     """Print all repo current state to terminal"""
     for repo in repos:
         print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
-        print('Location: ', repo['folder'])
-        state = repo['state']
+        print('Location: ', repo.path)
+        state = repo.state
         print('Modified: ', Fore.RED, state['dirty'], Style.RESET_ALL)
         print('Untracked: \n', Fore.YELLOW, '\n'.join(state['untracked']),
               Style.RESET_ALL)
