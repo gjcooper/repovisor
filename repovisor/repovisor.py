@@ -1,9 +1,7 @@
 from .repostate import GitRepoState
-from git import Repo
 from git.exc import InvalidGitRepositoryError
 from colorama import Fore, Style, init
 import os
-import warnings
 
 init()
 
@@ -31,29 +29,36 @@ def ahead_behind(ref):
         glyph += '-'
     return glyph
 
+
+def branch_representation(branch):
+    refview = '  Name: {:10.10} Upstream: '.format(branch['name'])
+    if branch['upstream']:
+        refview += '{!s:17.17} Status: {!s}'.format(branch['upstream'],
+                                                    ahead_behind(branch))
+    else:
+        refview += Fore.YELLOW + 'None' + Style.RESET_ALL
+    return refview
+
+
 def state_representation(repo):
     """Print the state for a repository"""
     loc = 'Location: ' + repo.path
     state = repo.state
     mod = 'Modified: '
     if state['dirty']:
-        
-    
+        mod += Fore.RED + 'Yes' + Style.RESET_ALL
+    else:
+        mod += Fore.GREEN + 'No' + Style.RESET_ALL
+    untracked = 'Untracked: ' + Fore.YELLOW
+    untracked += str(state['untracked']) + Style.RESET_ALL
+    refs = 'Branches: \n'
+    refs += '\n'.join([branch_representation(b) for b in state['refcheck']])
+    return '\n'.join([loc, mod, untracked, refs])
+
 
 def print_all(*repos):
     """Print all repo current state to terminal"""
     for repo in repos:
         print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
-        print('Location: ', repo.path)
-        state = repo.state
-        print('Modified: ', Fore.RED, state['dirty'], Style.RESET_ALL)
-        print('Untracked: \n', Fore.YELLOW, '\n'.join(state['untracked']),
-              Style.RESET_ALL)
-        print('Refs:')
-        for ref in state['refcheck']:
-            ab_notifier = ''
-            if ref['upstream']:
-                ab_notifier = ahead_behind(ref)
-            print('\tName: ', ref['name'], ' Upstream: ', ref['upstream'],
-                  'Status: ', ab_notifier)
+        print(state_representation(repo))
         print('________________________________________')
