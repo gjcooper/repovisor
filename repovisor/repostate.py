@@ -8,9 +8,9 @@ init()
 
 class GitRepoState(Repo):
     """An object that represents the state of a repository"""
-    def __init__(self, directory):
+    def __init__(self, directory, **kwargs):
         self.path = os.path.abspath(directory)
-        super().__init__(self.path)
+        super().__init__(self.path, **kwargs)
 
     def check_upstream(self, ref):
         """replicate my for-each-ref pattern"""
