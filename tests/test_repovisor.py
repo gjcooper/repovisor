@@ -81,4 +81,4 @@ class RepovisorTestCases(unittest.TestCase):
         self.assertEqual(up_git['behind'], 1)
 
     def test_print_state(self):
-        
+        pass
