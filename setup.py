@@ -7,7 +7,7 @@ __version__ = '0.0.1'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 # get the dependencies and installs
@@ -22,8 +22,8 @@ setup(
     version=__version__,
     description='A tool for managing many repositories and creating daily reports',
     long_description=long_description,
-    url='https://github.com/gjc216/repovisor',
-    download_url='https://github.com/gjc216/repovisor/tarball/' + __version__,
+    url='https://github.com/gjcooper/repovisor',
+    download_url='https://github.com/gjcooper/repovisor/tarball/' + __version__,
     license='BSD',
     classifiers=[
       'Development Status :: 3 - Alpha',
