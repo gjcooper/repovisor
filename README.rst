@@ -1,7 +1,7 @@
 The Repository Supervisor
 =========================
 
-version number: 0.0.1 author: Gavin Cooper
+version number: 0.0.4 author: Gavin Cooper
 
 Overview
 --------
@@ -42,7 +42,15 @@ results either within a terminal, or as a web generated report
 Example
 =======
 
-TBD
+Once installed you should have access to a command line program. To use
+it try:
+
+::
+
+    $ repovise --search /home/<userid>/<repostore>
+
+This will give output for all repositories within . Note the default is
+to query the upstream locations for all repos found.
 
 Technology Stack
 ================
