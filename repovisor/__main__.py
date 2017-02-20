@@ -15,8 +15,3 @@ def main():
 
     if not args.no_output:
         rv.print_all(*repos)
-
-    
-
-repos = list(rv.reposearch('/fully/qualified/path'))
-rv.print_all(*repos)
