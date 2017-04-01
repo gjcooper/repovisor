@@ -10,7 +10,8 @@
 # Packages
 *.egg
 *.egg-info
-build
+# Allow matches for subdirectories called builds
+/build
 eggs
 parts
 bin
