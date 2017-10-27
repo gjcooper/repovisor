@@ -1,9 +1,8 @@
 from .repostate import GitRepoState
 from git.exc import InvalidGitRepositoryError
-from colorama import Fore, Style, init
 import os
-
-init()
+from colorama import Fore, Style
+import click
 
 
 def reposearch(*folders):
@@ -30,17 +29,42 @@ def ahead_behind(ref):
     return glyph
 
 
-def branch_representation(branch):
-    refview = '  Name: {:10.10} Upstream: '.format(branch['name'])
+def branch_representation(branch, brief=False):
+    if brief:
+        refview = branch['name'] + ' '
+    else:
+        refview = '  Name: {:10.10} Upstream: '.format(branch['name'])
     if branch['upstream']:
-        refview += '{!s:17.17} Status: {!s}'.format(branch['upstream'],
-                                                    ahead_behind(branch))
+        if brief:
+            refview += '[{}]'.format(ahead_behind(branch))
+        else:
+            refview += '{!s:17.17} Status: {!s}'.format(branch['upstream'],
+                                                        ahead_behind(branch))
     else:
         refview += Fore.YELLOW + 'None' + Style.RESET_ALL
     return refview
 
 
-def state_representation(repo):
+def short_state_representation(repo):
+    """Print the state for a repository"""
+    loc = repo.path
+    state = repo.state
+    mod = ''
+    if state['dirty']:
+        mod += Fore.RED + 'Modified' + Style.RESET_ALL
+    else:
+        mod += Fore.GREEN + 'Clean' + Style.RESET_ALL
+    untracked = 'Untracked: ' + Fore.YELLOW
+    if len(state['untracked']) > 3:
+        untracked += '[ {}, {}, {}, ... ]'.format(*state['untracked'][:3]) + Style.RESET_ALL
+    else:
+        untracked += str(state['untracked']) + Style.RESET_ALL
+    refs = 'Branches: '
+    refs += ' '.join([branch_representation(b, brief=True) for b in state['refcheck']])
+    return ' '.join([loc, mod, untracked, refs])
+
+
+def long_state_representation(repo):
     """Print the state for a repository"""
     loc = 'Location: ' + repo.path
     state = repo.state
@@ -56,9 +80,11 @@ def state_representation(repo):
     return '\n'.join([loc, mod, untracked, refs])
 
 
-def print_all(*repos):
+def print_repo(repo, brief=False):
     """Print all repo current state to terminal"""
-    for repo in repos:
-        print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
-        print(state_representation(repo))
-        print('________________________________________')
+    if brief:
+        print(short_state_representation(repo))
+        return
+    print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
+    print(long_state_representation(repo))
+    print('________________________________________')
