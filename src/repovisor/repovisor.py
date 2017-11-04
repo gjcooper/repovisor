@@ -1,7 +1,6 @@
 from .repostate import GitRepoState
 from git.exc import InvalidGitRepositoryError
 import os
-from colorama import Fore, Style
 import click
 
 
@@ -17,31 +16,21 @@ def reposearch(*folders):
 
 
 def ahead_behind(ref):
-    if ref['ahead']:
-        glyph = Fore.RED + '+' + str(ref['ahead']) + Style.RESET_ALL
-    else:
-        glyph = '-'
-    glyph += '/'
-    if ref['behind']:
-        glyph += Fore.RED + '-' + str(ref['behind']) + Style.RESET_ALL
-    else:
-        glyph += '-'
-    return glyph
+    return '{}/{}'.format(
+        click.style('+' + str(ref['ahead']), fg='red') if ref['ahead'] else '-',
+        click.style('-' + str(ref['behind']), fg='red') if ref['behind'] else '-')
 
 
 def branch_representation(branch, brief=False):
-    if brief:
-        refview = branch['name'] + ' '
-    else:
-        refview = '  Name: {:10.10} Upstream: '.format(branch['name'])
     if branch['upstream']:
         if brief:
-            refview += '[{}]'.format(ahead_behind(branch))
+            refview = '{:.10} [{}]'.format(branch['name'], ahead_behind(branch))
         else:
-            refview += '{!s:17.17} Status: {!s}'.format(branch['upstream'],
-                                                        ahead_behind(branch))
+            refview = '  Name: {:10.10} Upstream: {!s:17.17} Status: {!s}'.format(
+                branch['name'], branch['upstream'], ahead_behind(branch))
     else:
-        refview += Fore.YELLOW + 'None' + Style.RESET_ALL
+        refview = '{:.10} {}' if brief else '  Name: {:10.10} Upstream: '
+        refview = refview.format(branch['name'], click.style('None', fg='yellow'))
     return refview
 
 
@@ -49,16 +38,13 @@ def short_state_representation(repo):
     """Print the state for a repository"""
     loc = repo.path
     state = repo.state
-    mod = ''
-    if state['dirty']:
-        mod += Fore.RED + 'Modified' + Style.RESET_ALL
-    else:
-        mod += Fore.GREEN + 'Clean' + Style.RESET_ALL
-    untracked = 'Untracked: ' + Fore.YELLOW
+    mod = click.style('Modified', fg='red') if state['dirty'] else click.style('Clean', fg='green')
+    untracked = 'Untracked: '
+
     if len(state['untracked']) > 3:
-        untracked += '[ {}, {}, {}, ... ]'.format(*state['untracked'][:3]) + Style.RESET_ALL
+        untracked += click.style('[ {}, {}, {}, ... ]'.format(*state['untracked'][:3]), fg='yellow')
     else:
-        untracked += str(state['untracked']) + Style.RESET_ALL
+        untracked += click.style(str(state['untracked']), fg='yellow')
     refs = 'Branches: '
     refs += ' '.join([branch_representation(b, brief=True) for b in state['refcheck']])
     return ' '.join([loc, mod, untracked, refs])
@@ -68,13 +54,8 @@ def long_state_representation(repo):
     """Print the state for a repository"""
     loc = 'Location: ' + repo.path
     state = repo.state
-    mod = 'Modified: '
-    if state['dirty']:
-        mod += Fore.RED + 'Yes' + Style.RESET_ALL
-    else:
-        mod += Fore.GREEN + 'No' + Style.RESET_ALL
-    untracked = 'Untracked: ' + Fore.YELLOW
-    untracked += str(state['untracked']) + Style.RESET_ALL
+    mod = 'Modified: {}'.format(click.style('Yes', fg='red') if state['dirty'] else click.style('No', fg='green'))
+    untracked = 'Untracked: {}'.format(click.style(str(state['untracked']), fg='yellow'))
     refs = 'Branches: \n'
     refs += '\n'.join([branch_representation(b) for b in state['refcheck']])
     return '\n'.join([loc, mod, untracked, refs])
