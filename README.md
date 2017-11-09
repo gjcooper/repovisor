@@ -1,6 +1,6 @@
 # The Repository Supervisor
 
-version number: 0.0.4
+version number: 0.0.6
 author: Gavin Cooper
 
 ## Overview
@@ -29,9 +29,11 @@ As a manually run script, or added as a cron job it will provide a status for al
 
 Once installed you should have access to a command line program. To use it try:
 
-    $ repovise --search /home/<userid>/<repostore>
+    $ repovise search /home/<userid>/<repostore>
 
 This will give output for all repositories within <repostore>. Note the default is to query the upstream locations for all repos found.
+
+It can also create a shorter representation of each repository by passing the `--brief, -b` option
 
 # Technology Stack
 
