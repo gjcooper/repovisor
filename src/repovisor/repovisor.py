@@ -4,12 +4,15 @@ import os
 import click
 
 
-def reposearch(*folders):
+def reposearch(*folders, prune=False):
     for folder in folders:
         for dir, subdirs, files in os.walk(folder):
             try:
                 yield GitRepoState(dir)
-                subdirs[:] = []
+                if prune:
+                    subdirs[:] = []
+                else:
+                    subdirs[:] = [s for s in subdirs if s != '.git']
                 continue
             except InvalidGitRepositoryError:
                 pass
