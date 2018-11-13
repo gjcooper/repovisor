@@ -1,14 +1,20 @@
 from .repostate import GitRepoState
-from git.exc import InvalidGitRepositoryError
+from git.exc import InvalidGitRepositoryError, GitCommandError
+from pathlib import Path
 import os
 import click
 
 
-def reposearch(*folders, prune=False):
+def pathlen(path):
+    """Return folder level of the path string"""
+    return len(Path(path).parts)
+
+
+def reposearch(*folders, prune=False, level=0):
     for folder in folders:
         for dir, subdirs, files in os.walk(folder):
             try:
-                yield GitRepoState(dir)
+                yield (pathlen(dir) - pathlen(folder)), GitRepoState(dir)
                 if prune:
                     subdirs[:] = []
                 else:
@@ -64,11 +70,19 @@ def long_state_representation(repo):
     return '\n'.join([loc, mod, untracked, refs])
 
 
-def print_repo(repo, brief=False):
+def repo_view(repo, brief=False):
     """Print all repo current state to terminal"""
-    if brief:
-        print(short_state_representation(repo))
-        return
-    print('‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
-    print(long_state_representation(repo))
-    print('________________________________________')
+    surrounds = '-' * 40 + '\n{}\n' + '-' * 40
+    try:
+        view = short_state_representation(repo) if brief else surrounds.format(long_state_representation(repo))
+    except GitCommandError as gce:
+        if 'must be run in a work tree' in gce.stderr:
+            if brief:
+                loc = repo.path
+                msg = click.style('Bare repo', fg='yellow')
+                view = ' '.join([loc, msg])
+            else:
+                loc = 'Location: ' + repo.path
+                msg = click.style('Repository is bare and does not have state to track', fg='yellow')
+                view = surrounds.format('\n'.join([loc, msg]))
+    return view
