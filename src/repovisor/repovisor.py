@@ -59,6 +59,17 @@ def short_state_representation(repo):
     return ' '.join([loc, mod, untracked, refs])
 
 
+def branch_uptodate(branch, true_on_missing_origin=True):
+    """Return True is branch is up to date with origin, otherwise False,
+    also returns True if no remote defined"""
+    if branch['upstream']:
+        if branch['ahead'] or branch['behind']:
+            return False
+        return True
+    if true_on_missing_origin:
+        return True
+    return False
+    
 def long_state_representation(repo):
     """Print the state for a repository"""
     loc = 'Location: ' + repo.path
