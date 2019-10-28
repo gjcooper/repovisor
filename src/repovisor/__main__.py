@@ -20,7 +20,7 @@ def __search_action(folders, brief, prune, tree, hide):
         view = rv.repo_view(repo, brief=brief)
         if tree and brief:
             view = '-'*repo_level + view
-        if hide:
+        if hide and not repo.bare:
             if not repo.state['dirty']:
                 if not repo.state['untracked']:
                     if all(rv.branch_uptodate(b) for b in repo.state['refcheck']):
