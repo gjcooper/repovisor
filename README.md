@@ -1,6 +1,6 @@
 # The Repository Supervisor
 
-version number: 0.0.6
+version number: 0.0.8
 author: Gavin Cooper
 
 ## Overview
