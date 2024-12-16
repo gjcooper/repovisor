@@ -99,5 +99,5 @@ def repo_view(repo, brief=False):
                 msg = click.style('Repository is bare and does not have state to track', fg='yellow')
                 view = surrounds.format('\n'.join([loc, msg]))
     if view is None:
-        raise GitViewError()
+        raise GitViewError('view is None after looking at repo')
     return view

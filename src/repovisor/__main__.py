@@ -1,4 +1,5 @@
 from repovisor import repovisor as rv
+from .repoerrors import GitViewError
 import click
 
 
@@ -21,7 +22,9 @@ def __search_action(folders, brief, prune, tree, hide, remote):
         try:
             view = rv.repo_view(repo, brief=brief)
         except GitViewError:
-            view = 'Problems with ' + dir
+            view = '***** Problems with ' + dir
+            print(view)
+            continue
         if tree and brief:
             view = '-'*repo_level + view
         if hide and not repo.bare:
