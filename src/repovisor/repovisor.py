@@ -1,4 +1,5 @@
 from .repostate import GitRepoState
+from .repoerrors import GitViewError
 from git.exc import InvalidGitRepositoryError, GitCommandError
 from pathlib import Path
 import os
@@ -14,7 +15,7 @@ def reposearch(*folders, prune=False, level=0):
     for folder in folders:
         for dir, subdirs, files in os.walk(folder):
             try:
-                yield (pathlen(dir) - pathlen(folder)), GitRepoState(dir)
+                yield (pathlen(dir) - pathlen(folder)), GitRepoState(dir), dir
                 if prune:
                     subdirs[:] = []
                 else:
@@ -97,4 +98,6 @@ def repo_view(repo, brief=False):
                 loc = 'Location: ' + repo.path
                 msg = click.style('Repository is bare and does not have state to track', fg='yellow')
                 view = surrounds.format('\n'.join([loc, msg]))
+    if view is None:
+        raise GitViewError()
     return view

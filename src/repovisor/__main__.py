@@ -17,8 +17,11 @@ def main():
 @click.option('--remote', is_flag=True, help='Warn if repo has no remote')
 def __search_action(folders, brief, prune, tree, hide, remote):
     '''search through a set of folders and print status for them'''
-    for repo_level, repo in rv.reposearch(*folders, prune=prune, level=0):
-        view = rv.repo_view(repo, brief=brief)
+    for repo_level, repo, dir in rv.reposearch(*folders, prune=prune, level=0):
+        try:
+            view = rv.repo_view(repo, brief=brief)
+        except GitViewError:
+            view = 'Problems with ' + dir
         if tree and brief:
             view = '-'*repo_level + view
         if hide and not repo.bare:

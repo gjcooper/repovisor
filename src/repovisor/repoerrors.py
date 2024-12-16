@@ -1,0 +1,2 @@
+class GitViewError(Exception):
+    pass
