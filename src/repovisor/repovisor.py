@@ -84,6 +84,7 @@ def long_state_representation(repo):
 def repo_view(repo, brief=False):
     """Print all repo current state to terminal"""
     surrounds = '-' * 40 + '\n{}\n' + '-' * 40
+    view = None
     try:
         view = short_state_representation(repo) if brief else surrounds.format(long_state_representation(repo))
     except GitCommandError as gce:
